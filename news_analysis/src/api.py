@@ -15,8 +15,8 @@ app = FastAPI()
 VALID_DIARIES = ["The Daily News", "Global Times", "Morning Star"]
 
 def send_alert_email(recipient, subject, message):
-    sender_email = "tu_correo@gmail.com"  # Cambia esto a tu correo
-    sender_password = "tu_contraseña"  # Cambia esto a tu contraseña
+    sender_email = "contreras.joseph.7630@eam.edu.co"  # Cambia esto a tu correo
+    sender_password = ""  # Cambia esto a tu contraseña
 
     # Crear el mensaje
     msg = MIMEMultipart()
@@ -36,7 +36,6 @@ def send_alert_email(recipient, subject, message):
         print("Correo electrónico enviado.")
     except Exception as e:
         print(f"Error al enviar el correo: {e}")
-
 
 # Modelo para la entrada del usuario
 class ArticleInput(BaseModel):
@@ -83,5 +82,11 @@ def get_statistics(input_data: ArticleInput):
 
     # Filtrar los datos para el diario actual y el día de la semana actual (por ejemplo, todos los jueves)
     statistics = calculate_statistics(data, input_data.diary, input_data.articles)
+
+    # Enviar un correo si se genera una alerta
+    if statistics['alert']:
+        recipient_email = "contreras.joseph.7630@eam.edu.co"  # Cambia esto al correo del destinatario
+        subject = f"Alerta: {input_data.diary} bajo el umbral de artículos"
+        send_alert_email(recipient_email, subject, statistics['message'])
 
     return statistics

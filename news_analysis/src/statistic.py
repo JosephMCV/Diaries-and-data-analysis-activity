@@ -1,6 +1,37 @@
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+def send_alert_email(current_articles, mean_articles, threshold, diary):
+    """Envía un correo electrónico de alerta cuando el número de artículos está por debajo del umbral."""
+    
+    sender_email = "contreras.joseph.7630@eam.edu.co"  # Cambia a tu correo electrónico
+    receiver_email = "contreras.joseph.7630@eam.edu.co"
+    password = ""  # Cambia a tu contraseña de correo
+
+    # Crear el mensaje
+    subject = f"Alerta: Artículos bajos para el diario {diary}"
+    body = (f"Alerta: El diario {diary} ha subido {current_articles} artículos, "
+            f"por debajo del umbral del 80% del promedio ({threshold:.2f}).")
+    
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = receiver_email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+
+    # Enviar el correo
+    try:
+        with smtplib.SMTP('smtp.gmail.com', 587) as server:  # Cambia a tu servidor SMTP
+            server.starttls()  # Inicia la conexión segura
+            server.login(sender_email, password)
+            server.send_message(msg)
+            print("Correo de alerta enviado.")
+    except Exception as e:
+        print(f"Error al enviar el correo: {e}")
 
 def calculate_statistics(data, diary, current_articles):
     """Calcula estadísticas y verifica si los artículos actuales están por debajo del umbral de 80%, aplicando el modelo estadístico."""
@@ -38,6 +69,9 @@ def calculate_statistics(data, diary, current_articles):
     # Fase 1: Si está por debajo del 80% del promedio
     if below_threshold:
         message = f"El diario {diary} ha subido {current_articles} artículos, por debajo del 80% del promedio ({threshold:.2f}) de los últimos 6 meses en los días {current_weekday_str}."
+
+        # Enviar correo de alerta
+        send_alert_email(current_articles, mean_articles, threshold, diary)
 
         # Fase 2: Coeficiente de variación
         if coefficient_of_variation > 0.2:  # Alta variabilidad (umbral arbitrario)
